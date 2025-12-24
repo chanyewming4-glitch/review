@@ -1,24 +1,28 @@
 <script>
-    // 1. 改用 window.location，確保手機權限正常
+    // 1. 改用 window.location 確保手機權限正常
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // 2. 統一參數名稱為 msg
     const review = urlParams.get('msg'); 
     
     if (review) {
-        document.getElementById('text').innerText = decodeURIComponent(review);
+        // 使用 decodeURIComponent 解決中文亂碼問題
+        document.getElementById('review-text').innerText = decodeURIComponent(review);
+    } else {
+        document.getElementById('review-text').innerText = "評論生成中，請稍候...";
     }
 
     async function copyAndGo() {
-        const content = document.getElementById('text').innerText;
+        const content = document.getElementById('review-text').innerText;
         const googleMapUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
 
         try {
-            // 嘗試執行複製
+            // 手機一鍵複製
             await navigator.clipboard.writeText(content);
-            alert('評論已複製！即將開啟地圖，請直接在評論區「貼上」。');
-            // 複製成功後直接跳轉
+            alert('評論已複製！即將開啟地圖進行貼上。');
             window.location.href = googleMapUrl;
         } catch (err) {
-            // 針對舊款手機或 LINE 內建瀏覽器的相容方案
+            // 備用方案：手動全選複製
             const textArea = document.createElement("textarea");
             textArea.value = content;
             document.body.appendChild(textArea);
