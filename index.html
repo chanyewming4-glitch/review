@@ -1,37 +1,31 @@
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const review = params.get('msg');
+    // 1. 改用 window.location，確保手機權限正常
+    const urlParams = new URLSearchParams(window.location.search);
+    const review = urlParams.get('msg'); 
+    
     if (review) {
         document.getElementById('text').innerText = decodeURIComponent(review);
     }
 
-    function copyAndGo() {
+    async function copyAndGo() {
         const content = document.getElementById('text').innerText;
-        const googleReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
+        const googleMapUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
 
-        // 1. 先嘗試複製
-        navigator.clipboard.writeText(content).then(() => {
-            // 複製成功後直接跳轉，不要加 alert，避免被手機系統攔截
-            window.location.href = googleReviewUrl;
-        }).catch(err => {
-            // 2. 備用方案 (針對不支援 clipboard API 的手機瀏覽器)
+        try {
+            // 嘗試執行複製
+            await navigator.clipboard.writeText(content);
+            alert('評論已複製！即將開啟地圖，請直接在評論區「貼上」。');
+            // 複製成功後直接跳轉
+            window.location.href = googleMapUrl;
+        } catch (err) {
+            // 針對舊款手機或 LINE 內建瀏覽器的相容方案
             const textArea = document.createElement("textarea");
             textArea.value = content;
             document.body.appendChild(textArea);
             textArea.select();
-            try {
-                document.execCommand('copy');
-                window.location.href = googleReviewUrl; // 複製完立刻跳轉
-            } catch (e) {
-                // 如果真的都失敗，至少要讓用戶能手動點擊
-                window.open(googleReviewUrl, '_blank');
-            }
+            document.execCommand('copy');
             document.body.removeChild(textArea);
-        });
-
-        // 3. 最終保險：如果 2 秒後還沒跳轉，強制執行
-        setTimeout(() => {
-            window.location.href = googleReviewUrl;
-        }, 2000);
+            window.location.href = googleMapUrl;
+        }
     }
 </script>
