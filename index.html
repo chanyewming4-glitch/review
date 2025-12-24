@@ -1,48 +1,37 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>好評草稿 - 雪梨冷熱飲</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        #text { background: #f8fafc; border: 2px solid #edf2f7; padding: 15px; border-radius: 12px; margin: 20px 0; line-height: 1.6; color: #4a5568; text-align: left; min-height: 100px; }
-        button { background: #4A90E2; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
-        .link { display: block; color: #4A90E2; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h3>感謝好評！請複製下方內容</h3>
-        <div id="text">正在讀取 AI 評論...</div>
-        <button onclick="copyAndGo()">📋 點擊複製並前往 Google</button>
-        <a href="https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU" target="_blank" class="link">無法自動跳轉？點我前往 Google</a>
-    </div>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const review = params.get('msg');
+    if (review) {
+        document.getElementById('text').innerText = decodeURIComponent(review);
+    }
 
-    <script>
-        // 讀取網址列傳過來的評論 (URL Parameter)
-        const params = new URLSearchParams(window.location.search);
-        const review = params.get('msg');
-        if (review) document.getElementById('text').innerText = decodeURIComponent(review);
+    function copyAndGo() {
+        const content = document.getElementById('text').innerText;
+        const googleReviewUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
 
-        function copyAndGo() {
-            const content = document.getElementById('text').innerText;
-            navigator.clipboard.writeText(content).then(() => {
-                alert('評論已成功複製！');
-                window.location.href = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
-            }).catch(err => {
-                // 備用方案：如果瀏覽器不支援 clipboard API
-                const textArea = document.createElement("textarea");
-                textArea.value = content;
-                document.body.appendChild(textArea);
-                textArea.select();
+        // 1. 先嘗試複製
+        navigator.clipboard.writeText(content).then(() => {
+            // 複製成功後直接跳轉，不要加 alert，避免被手機系統攔截
+            window.location.href = googleReviewUrl;
+        }).catch(err => {
+            // 2. 備用方案 (針對不支援 clipboard API 的手機瀏覽器)
+            const textArea = document.createElement("textarea");
+            textArea.value = content;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
                 document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('評論已複製！');
-                window.location.href = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
-            });
-        }
-    </script>
-</body>
-</html>
+                window.location.href = googleReviewUrl; // 複製完立刻跳轉
+            } catch (e) {
+                // 如果真的都失敗，至少要讓用戶能手動點擊
+                window.open(googleReviewUrl, '_blank');
+            }
+            document.body.removeChild(textArea);
+        });
+
+        // 3. 最終保險：如果 2 秒後還沒跳轉，強制執行
+        setTimeout(() => {
+            window.location.href = googleReviewUrl;
+        }, 2000);
+    }
+</script>
