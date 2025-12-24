@@ -1,35 +1,50 @@
-<script>
-    // 1. 改用 window.location 確保手機權限正常
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // 2. 統一參數名稱為 msg
-    const review = urlParams.get('msg'); 
-    
-    if (review) {
-        // 使用 decodeURIComponent 解決中文亂碼問題
-        document.getElementById('review-text').innerText = decodeURIComponent(review);
-    } else {
-        document.getElementById('review-text').innerText = "評論生成中，請稍候...";
-    }
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>好評草稿</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f7f9; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+        #review-text { background: #f8fafc; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left; min-height: 50px; border: 1px solid #eee; }
+        button { background: #4A90E2; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h3>您的評論草稿</h3>
+        <div id="review-text">正在讀取...</div>
+        <button onclick="copyAndGo()">📋 複製並開啟地圖</button>
+    </div>
 
-    async function copyAndGo() {
-        const content = document.getElementById('review-text').innerText;
-        const googleMapUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
-
-        try {
-            // 手機一鍵複製
-            await navigator.clipboard.writeText(content);
-            alert('評論已複製！即將開啟地圖進行貼上。');
-            window.location.href = googleMapUrl;
-        } catch (err) {
-            // 備用方案：手動全選複製
-            const textArea = document.createElement("textarea");
-            textArea.value = content;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            window.location.href = googleMapUrl;
+    <script>
+        // 您剛才確認過的代碼放在這裡
+        const urlParams = new URLSearchParams(window.location.search);
+        const review = urlParams.get('msg'); 
+        if (review) {
+            document.getElementById('review-text').innerText = decodeURIComponent(review);
+        } else {
+            document.getElementById('review-text').innerText = "未接收到評論內容";
         }
-    }
-</script>
+
+        async function copyAndGo() {
+            const content = document.getElementById('review-text').innerText;
+            const googleMapUrl = "https://search.google.com/local/writereview?placeid=ChIJEQQ2CQs7aTQRAMzchRtCKqU";
+            try {
+                await navigator.clipboard.writeText(content);
+                alert('評論已複製！');
+                window.location.href = googleMapUrl;
+            } catch (err) {
+                const textArea = document.createElement("textarea");
+                textArea.value = content;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                window.location.href = googleMapUrl;
+            }
+        }
+    </script>
+</body>
+</html>
