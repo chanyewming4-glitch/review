@@ -49,12 +49,17 @@
       font-size: 1rem;
       transition: 0.3s;
     }
+    button.secondary {
+      background: #64748b;
+      margin-top: 10px;
+    }
     button:active { transform: scale(0.98); }
 
     .footer-note {
       font-size: 0.8rem;
       color: #94a3b8;
       margin-top: 15px;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -62,38 +67,78 @@
 
 <div class="card">
   <div class="icon">✉️</div>
-  <h3>萬分抱歉</h3>
-  <p>
-    很遺憾未能達到您的期待。<br>
-    您的意見已交由相關團隊參考，<br>
-    作為我們服務改進的重要依據。
-  </p>
+  <h3 id="title">感謝您的回饋</h3>
+
+  <p id="description"></p>
 
   <div id="review-text">正在讀取回饋內容...</div>
 
-  <button id="actionBtn">📩 提交回饋（僅內部）</button>
+  <button id="primaryBtn" style="display:none;"></button>
 
-  <p class="footer-note">
-    此回饋將僅用於內部改善<br>
-    感謝您協助我們變得更好
-  </p>
+  <p class="footer-note" id="footerNote"></p>
 </div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const reviewText = params.get('msg');
-  const rating = Number(params.get('rating')) || 0;
+  const rating = Math.min(Math.max(Number(params.get('rating')) || 0, 0), 5);
+  const reviewText = params.get('msg') || '';
 
+  const googleReviewUrl = 'https://openinapp.link/uc9qq'; // 🔁 換成你的 Google Review 連結
+
+  const title = document.getElementById('title');
+  const description = document.getElementById('description');
   const reviewBox = document.getElementById('review-text');
-  const actionBtn = document.getElementById('actionBtn');
+  const primaryBtn = document.getElementById('primaryBtn');
+  const footerNote = document.getElementById('footerNote');
 
-  reviewBox.innerText = reviewText
-    ? reviewText
-    : '尚未收到具體評論內容，感謝您的關注。';
+  reviewBox.innerText = reviewText || '尚未收到具體評論內容，感謝您的關注。';
 
-  actionBtn.onclick = () => {
-    alert('感謝您的回饋，我們已收到並將持續改進。');
-  };
+  // 1–3 星（不主動引導）
+  if (rating <= 3) {
+    title.innerText = '感謝您的回饋';
+    description.innerHTML = `
+      我們已收到您的意見，<br>
+      並將作為服務改善的重要參考。
+    `;
+
+    footerNote.innerHTML = `
+      若您希望分享您的體驗，<br>
+      也可依個人意願於 Google 評論平台留下評論
+    `;
+  }
+
+  // 4–5 星（主動引導）
+  if (rating >= 4) {
+    title.innerText = '感謝您的肯定';
+    description.innerHTML = `
+      很高興這次的體驗讓您滿意，<br>
+      若您願意，歡迎分享至 Google 評論。
+    `;
+
+    primaryBtn.style.display = 'block';
+    primaryBtn.innerText = '📋 複製評論並前往 Google 評論';
+    primaryBtn.onclick = copyAndGo;
+
+    footerNote.innerHTML = `
+      點擊按鈕後將自動複製文字，<br>
+      您可直接貼上至 Google 評論
+    `;
+  }
+
+  async function copyAndGo() {
+    try {
+      await navigator.clipboard.writeText(reviewBox.innerText);
+      window.location.href = googleReviewUrl;
+    } catch (err) {
+      const textarea = document.createElement('textarea');
+      textarea.value = reviewBox.innerText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      window.location.href = googleReviewUrl;
+    }
+  }
 </script>
 
 </body>
